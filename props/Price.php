@@ -131,7 +131,7 @@ class Price {
             }
 
             if(!$ret)
-                throw new \Exception('Error updating price');
+                throw new \Exception('Error updating price PRICE: ' . $price['PRICE'] . ', CURRENCY: ' . $price['CURRENCY']);
 
         }
 

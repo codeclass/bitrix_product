@@ -77,6 +77,9 @@ abstract class Prop {
                     case 'directory' :
                         $res = new PropListHL($IBLOCK_ID, $CODE, $ELEMENT_ID, $ENTITY);
                         break;
+                    case 'HTML' :
+                        $res = new PropHTML($IBLOCK_ID, $CODE, $ELEMENT_ID, $ENTITY);
+                        break;
                     default :
                         throw new \Exception('Unknown property USER_TYPE ' . $ENTITY['USER_TYPE']);
                 }

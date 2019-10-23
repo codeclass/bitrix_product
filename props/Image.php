@@ -31,8 +31,10 @@ class Image {
 
     public function load()
     {
-        if(!$this->ID)
-            throw new \Exception('To load image ID needed');
+        if(!$this->ID) {
+            //throw new \Exception('To load image ID needed');
+            return false;
+        }
 
         $rsFile = \CFile::GetByID($this->ID);
         $this->OBJ = $rsFile->Fetch();
@@ -43,6 +45,8 @@ class Image {
     }
 
     public function getValue(){
+        $ret = NULL;
+
         if(!$this->OBJ && !$this->changed){
             $this->load();
         }

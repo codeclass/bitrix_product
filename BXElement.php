@@ -113,6 +113,7 @@ class BXElement {
         foreach($this->PROPERTIES as $prop){
             $prop->setElementID($this->ID);
         }
+
     }
 
     public function getField($CODE){
