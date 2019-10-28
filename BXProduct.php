@@ -38,10 +38,10 @@ class BXProduct extends BXElement {
         //Get Iblock Data
         $res = \CCatalog::GetByID($IBLOCK_ID);
         $this->IBLOCK_DATA = $res;
-        //var_dump($this->IBLOCK_DATA);
 
         $res = \CCatalog::GetList([], ['PRODUCT_IBLOCK_ID' => $IBLOCK_ID]);
         $this->OFFERS_IBLOCK_DATA = $res -> Fetch();
+
         //var_dump($this->OFFERS_IBLOCK_DATA);
 
         if($this->isCatalog()) {
@@ -54,7 +54,6 @@ class BXProduct extends BXElement {
         if($this->hasOffers() && $ELEMENT_ID) {
             $this->OFFERS = BXProduct::findByFilter($this->offersIBlock(), ['PROPERTY_CML2_LINK' => $ELEMENT_ID]);
         }
-
     }
 
     public function isCatalog(){
@@ -86,6 +85,8 @@ class BXProduct extends BXElement {
 
     public function save()
     {
+        $this->setTypeOffers();
+
         parent::save();
         if($this->isCatalog()) {
             $this->PRODUCT_DATA->save();
@@ -93,6 +94,7 @@ class BXProduct extends BXElement {
         }
         if($this->hasOffers()){
             foreach ($this->OFFERS as $offer){
+                $offer->setProperty('CML2_LINK', $this->ID);
                 $offer->save();
             }
         }
@@ -119,6 +121,12 @@ class BXProduct extends BXElement {
     public function setQuantity($QUANTITY){
         if($this->isCatalog()) {
             $this->PRODUCT_DATA->setValue('QUANTITY', $QUANTITY);
+        }
+    }
+
+    public function setTypeOffers(){
+        if($this->isCatalog() && $this->hasOffers() && count($this->OFFERS) > 0) {
+            $this->PRODUCT_DATA->setValue('TYPE', 3);
         }
     }
 

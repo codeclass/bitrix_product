@@ -64,13 +64,14 @@ class Section {
     public function save(){
         if(!$this->ELEMENT_ID)
             throw new \Exception('ELEMENT_ID needed for save');
-
+        if(!$this->changed)
+            return;
         $connection = \Bitrix\Main\Application::getConnection();
         //Сначала все удалим
         $sql = "DELETE FROM b_iblock_section_element WHERE IBLOCK_ELEMENT_ID = {$this->ELEMENT_ID}";
         $res = $connection->queryExecute($sql);
 
-        //var_dump($res);
+        var_dump($res);
 
         foreach ($this->VALUE as $section_id){
             $sql = "INSERT INTO b_iblock_section_element (IBLOCK_SECTION_ID, IBLOCK_ELEMENT_ID) VALUES ($section_id, {$this->ELEMENT_ID})";
@@ -81,9 +82,6 @@ class Section {
     }
 
     public function getForSave(){
-        if(!$this->changed)
-            $this->load();
-
         if(empty($this->VALUE))
             return null;
 
@@ -143,9 +141,5 @@ class Section {
         }
         $this->VALUE = $new_val;
         $this->changed = true;
-    }
-
-    public function isChanged(){
-        return $this->changed;
     }
 }

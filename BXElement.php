@@ -32,6 +32,7 @@ class BXElement {
         'PREVIEW_TEXT_TYPE' => 'html',
         'DETAIL_TEXT' => '',
         'DETAIL_TEXT_TYPE' => 'html',
+        'EXTERNAL_ID'
     );
 
     protected $PREVIEW_PICTURE = null;
@@ -207,6 +208,13 @@ class BXElement {
         $this->changed = true;
 
         return $ret;
+    }
+
+    public function addPropertyEnum($CODE, $value, $xml_id= ''){
+        if(!in_array($CODE, array_keys($this->PROPERTIES)))
+            throw new \Exception('Property not found :' . $CODE);
+
+        $this->PROPERTIES[$CODE]->addEnum($value, $xml_id);
     }
 
     public function addPropValue($CODE, $VALUE){

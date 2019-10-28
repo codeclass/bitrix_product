@@ -37,6 +37,10 @@ class PropList extends Prop {
         return $this;
     }
 
+    public function addEnum($value, $xml_id = ''){
+        $this->ENUM->addEnumValue($value, $xml_id);
+    }
+
     protected function _loadMultiple($value_res){
         $this->VALUE = [];
         while($value = $value_res->Fetch())
