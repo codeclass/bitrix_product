@@ -12,7 +12,8 @@ use Codeclass\parser\lib\product\props\Image;
 use Codeclass\parser\lib\product\props\Prop;
 use Codeclass\parser\lib\product\props\Section;
 
-class BXElement {
+class BXElement
+{
 
     /*
      * Fields
@@ -44,27 +45,28 @@ class BXElement {
 
     protected $changed = false;
 
-    public static function findByFilter($IBLOCK_ID, $FILTER, $FIRST = false){
+    public static function findByFilter($IBLOCK_ID, $FILTER, $FIRST = false)
+    {
         $arFilter = array_merge(['IBLOCK_ID' => $IBLOCK_ID], $FILTER);
-        $res  = \CIBlockElement::GetList([], $arFilter);
+        $res = \CIBlockElement::GetList([], $arFilter);
         $cnt = $res->SelectedRowsCount();
-        if($cnt == 0)
+        if ($cnt == 0)
             return [];
 
         $el = false;
 
-        if($cnt > 1){
-            if($FIRST){
+        if ($cnt > 1) {
+            if ($FIRST) {
                 $el = $res->Fetch();
                 return new BXElement($IBLOCK_ID, $el['ID']);
             } else {
                 $ret = [];
-                while($el = $res->Fetch()){
+                while ($el = $res->Fetch()) {
                     $ret[] = new BXElement($IBLOCK_ID, $el['ID']);
                 }
                 return $ret;
             }
-        } elseif ($cnt == 1){
+        } elseif ($cnt == 1) {
             $el = $res->Fetch();
             return new BXElement($IBLOCK_ID, $el['ID']);
         }
@@ -84,58 +86,87 @@ class BXElement {
 
         //Init Properties
         $props_res = \CIBlockProperty::GetList([], ['IBLOCK_ID' => $IBLOCK_ID]);
-        while($prop = $props_res->Fetch()){
+        while ($prop = $props_res->Fetch()) {
             $this->PROPERTIES[$prop['CODE']] = Prop::getProp($this->IBLOCK_ID, $prop['CODE'], $this->ID, $prop);
         }
     }
 
-    public function setID($ID){
+    public function setID($ID)
+    {
         $this->ID = $ID;
         $this->IBLOCK_SECTION_ID->setElementID($ID);
-        foreach ($this->PROPERTIES as $prop){
+        foreach ($this->PROPERTIES as $prop) {
             $prop->setElementID($ID);
         }
     }
 
-    public function load(){
-        if(!$this->ID)
+    public function load()
+    {
+        if (!$this->ID)
             throw new \Exception('ELEMENT_ID needed for load element');
 
         $el_res = \CIBlockElement::GetByID($this->ID);
         $el = $el_res->Fetch();
-        if(!$el)
-            throw new \Exception('Element not found ID: '. $this->ID);
+        if (!$el)
+            throw new \Exception('Element not found ID: ' . $this->ID);
 
         $this->FIELDS = $el;
 
         $this->PREVIEW_PICTURE->setID($el['PREVIEW_PICTURE']);
         $this->DETAIL_PICTURE->setID($el['DETAIL_PICTURE']);
 
-        foreach($this->PROPERTIES as $prop){
+        foreach ($this->PROPERTIES as $prop) {
             $prop->setElementID($this->ID);
         }
 
     }
 
-    public function getField($CODE){
-        if(!$this->changed && $this->ID)
+    public function getFieldsKeys()
+    {
+        if (!$this->changed && $this->ID)
+            $this->load();
+        return array_keys($this->FIELDS);
+    }
+
+    public function getFields($fields = null)
+    {
+        if (!$this->changed && $this->ID)
             $this->load();
 
-        $fields = array_keys($this->FIELDS);
+        $result = $fields ? array_intersect_key($this->FIELDS, array_flip($fields)) : $this->FIELDS;
+
+        if (isset($result['PREVIEW_PICTURE'])) {
+            $result['PREVIEW_PICTURE'] = $this->PREVIEW_PICTURE->getValue();
+        }
+
+        if (isset($result['DETAIL_PICTURE'])) {
+            $result['DETAIL_PICTURE'] = $this->DETAIL_PICTURE->getValue();
+        }
+
+        if (isset($result['IBLOCK_SECTION'])) {
+            $result['IBLOCK_SECTION'] = $this->IBLOCK_SECTION_ID->getValue();
+        }
+
+        return $result;
+    }
+
+    public function getField($CODE)
+    {
+        $fields = $this->getFieldsKeys();
 
         $special_fields = ['PREVIEW_PICTURE', 'DETAIL_PICTURE', 'IBLOCK_SECTION'];
 
-        if(!in_array($CODE, array_merge($fields, $special_fields)))
+        if (!in_array($CODE, array_merge($fields, $special_fields)))
             throw new \Exception('Field not found: ' . $CODE);
 
         $ret = false;
 
-        if(in_array($CODE, $fields)){
+        if (in_array($CODE, $fields)) {
             $ret = $this->FIELDS[$CODE];
         }
 
-        if(in_array($CODE, $special_fields)){
-            switch($CODE) {
+        if (in_array($CODE, $special_fields)) {
+            switch ($CODE) {
                 case 'PREVIEW_PICTURE':
                     $ret = $this->PREVIEW_PICTURE->getValue();
                     break;
@@ -150,24 +181,21 @@ class BXElement {
         return $ret;
     }
 
-    public function setField($CODE, $VALUE){
-
-        if(!$this->changed && $this->ID)
-            $this->load();
-
-        $fields = array_keys($this->FIELDS);
+    public function setField($CODE, $VALUE)
+    {
+        $fields = $this->getFieldsKeys();
 
         $special_fields = ['PREVIEW_PICTURE', 'DETAIL_PICTURE', 'IBLOCK_SECTION'];
 
-        if(!in_array($CODE, array_merge($fields, $special_fields)))
+        if (!in_array($CODE, array_merge($fields, $special_fields)))
             throw new \Exception('Field not found: ' . $CODE);
 
-        if(in_array($CODE, $fields)){
+        if (in_array($CODE, $fields)) {
             $this->FIELDS[$CODE] = $VALUE;
         }
 
-        if(in_array($CODE, $special_fields)){
-            switch($CODE) {
+        if (in_array($CODE, $special_fields)) {
+            switch ($CODE) {
                 case 'PREVIEW_PICTURE':
                     $this->PREVIEW_PICTURE->setValue($VALUE);
                     break;
@@ -182,12 +210,33 @@ class BXElement {
         $this->changed = true;
     }
 
-    public function getProperty($CODE){
-        if(!$this->changed && $this->ID)
+    public function getPropertiesKeys()
+    {
+        if (!$this->changed && $this->ID)
+            $this->load();
+        return array_keys($this->PROPERTIES);
+    }
+
+    public function getProperties($codes = null)
+    {
+        if (!$this->changed && $this->ID)
             $this->load();
 
-        $props = array_keys($this->PROPERTIES);
-        if(!in_array($CODE, $props))
+        $values = [];
+
+        $props = $codes ? array_intersect_key($this->PROPERTIES, array_flip($codes)) : $this->PROPERTIES;
+
+        foreach ($props as $prop) {
+            $values[$prop->getCode()] = $prop->getValue();
+        }
+
+        return $values;
+    }
+
+    public function getProperty($CODE)
+    {
+        $props = $this->getPropertiesKeys();
+        if (!in_array($CODE, $props))
             throw new \Exception('Property not found :' . $CODE);
 
         $ret = $this->PROPERTIES[$CODE]->getValue();
@@ -195,12 +244,10 @@ class BXElement {
         return $ret;
     }
 
-    public function setProperty($CODE, $VALUE){
-        if(!$this->changed && $this->ID)
-            $this->load();
-
-        $props = array_keys($this->PROPERTIES);
-        if(!in_array($CODE, $props))
+    public function setProperty($CODE, $VALUE)
+    {
+        $props = $this->getPropertiesKeys();
+        if (!in_array($CODE, $props))
             throw new \Exception('Property not found :' . $CODE);
 
         $ret = $this->PROPERTIES[$CODE]->setValue($VALUE);
@@ -210,19 +257,21 @@ class BXElement {
         return $ret;
     }
 
-    public function addPropertyEnum($CODE, $value, $xml_id= ''){
-        if(!in_array($CODE, array_keys($this->PROPERTIES)))
+    public function addPropertyEnum($CODE, $value, $xml_id = '')
+    {
+        if (!in_array($CODE, array_keys($this->PROPERTIES)))
             throw new \Exception('Property not found :' . $CODE);
 
         $this->PROPERTIES[$CODE]->addEnum($value, $xml_id);
     }
 
-    public function addPropValue($CODE, $VALUE){
-        if(!$this->changed && $this->ID)
+    public function addPropValue($CODE, $VALUE)
+    {
+        if (!$this->changed && $this->ID)
             $this->load();
 
         $props = array_keys($this->PROPERTIES);
-        if(!in_array($CODE, $props))
+        if (!in_array($CODE, $props))
             throw new \Exception('Property not found :' . $CODE);
 
         $ret = $this->PROPERTIES[$CODE]->addValue($VALUE);
@@ -232,32 +281,36 @@ class BXElement {
         return $ret;
     }
 
-    public function setSection($SECTION){
+    public function setSection($SECTION)
+    {
         $this->IBLOCK_SECTION_ID->setValue($SECTION);
         $this->changed = true;
     }
 
-    public function addSection($SECTION){
+    public function addSection($SECTION)
+    {
         $this->IBLOCK_SECTION_ID->addValue($SECTION);
-        $this->changed=true;
+        $this->changed = true;
     }
 
-    public function removeSection($SECTION){
+    public function removeSection($SECTION)
+    {
         $this->IBLOCK_SECTION_ID->removeValue($SECTION);
-        $this->changed=true;
+        $this->changed = true;
     }
 
-    public function save(){
-        if(!$this->changed)
+    public function save()
+    {
+        if (!$this->changed)
             return;
 
         $ar = $this->_prepareFields();
 
         $el = new \CIBlockElement();
 
-        if($this->ID){
+        if ($this->ID) {
             $res = $el->Update($this->ID, $ar);
-            if(!$res){
+            if (!$res) {
                 var_dump($res);
                 var_dump(iconv('UTF-8', 'windows-1251', $el->LAST_ERROR));
                 throw new \Exception('Error updating element');
@@ -265,7 +318,7 @@ class BXElement {
 
         } else {
             $res = $el->Add($ar);
-            if(!$res){
+            if (!$res) {
                 var_dump($res);
                 var_dump(iconv('UTF-8', 'windows-1251', $el->LAST_ERROR));
                 throw new \Exception('Error inserting element');
@@ -276,13 +329,14 @@ class BXElement {
         //saving section
         $this->IBLOCK_SECTION_ID->save();
         //saving props
-        foreach ($this->PROPERTIES as $prop){
+        foreach ($this->PROPERTIES as $prop) {
             $prop->save();
         }
         $this->changed = false;
     }
 
-    protected function _prepareFields(){
+    protected function _prepareFields()
+    {
         $ar = $this->FIELDS;
         $ar['IBLOCK_ID'] = $this->IBLOCK_ID;
         $preview_picture = $this->PREVIEW_PICTURE->getForSave();
@@ -293,7 +347,6 @@ class BXElement {
         $ar['IBLOCK_SECTION_ID'] = $this->IBLOCK_SECTION_ID->getForSave();
         return $ar;
     }
-
 
 
 }

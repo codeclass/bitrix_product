@@ -13,13 +13,16 @@ class Enum {
     var $IBLOCK_ID;
     var $CODE;
 
+    var $IS_REQUIRED;
+
     var $VALUES = false;
     var $VALUES_XML = false;
 
-    public function __construct($IBLOCK_ID, $CODE)
+    public function __construct($IBLOCK_ID, $CODE, $IS_REQUIRED = false)
     {
         $this->IBLOCK_ID = $IBLOCK_ID;
         $this->CODE = $CODE;
+        $this->IS_REQUIRED = $IS_REQUIRED;
     }
 
     public function load(){
@@ -50,9 +53,6 @@ class Enum {
     public function addEnumValue($value, $xml_id = ''){
         if(empty($value))
             throw new \Exception('Empty enum value');
-        if(empty($xml_id))
-
-
         if(in_array($value, array_values($this->VALUES)))
             throw new \Exception('Value already exists');
         if(!empty($xml_id) && in_array($xml_id, array_values($this->VALUES_XML)))
@@ -82,8 +82,11 @@ class Enum {
     protected function _getValue($id){
         if(isset($this->VALUES[$id])){
             $ret = $this->VALUES[$id];
-        } else
-            throw new \Exception('No value for id ' . $id);
+        } else {
+            if ($this->IS_REQUIRED)
+                throw new \Exception('No value for id ' . $id);
+            $ret = null;
+        }
         return $ret;
     }
 

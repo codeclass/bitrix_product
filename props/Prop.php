@@ -11,7 +11,8 @@ namespace Codeclass\parser\lib\product\props;
 
 use PhpImap\Exception;
 
-abstract class Prop {
+abstract class Prop
+{
 
     protected $PROPERTY_TYPE;
 
@@ -19,6 +20,8 @@ abstract class Prop {
      * @var Иденитификатор значения свойства
      */
     protected $ID;
+
+    protected $CODE;
 
     protected $ELEMENT_ID = null;
 
@@ -32,20 +35,28 @@ abstract class Prop {
 
     public function __construct($IBLOCK_ID, $CODE, $ELEMENT_ID = null, $ENTITY = false)
     {
-        if(!$ENTITY){
-            $entity_res = \CIBlockProperty::GetList([], ['IBLOCK_ID' => $IBLOCK_ID , 'CODE' => $CODE]);
+
+        $this->CODE = $CODE;
+
+        if (!$ENTITY) {
+            $entity_res = \CIBlockProperty::GetList([], ['IBLOCK_ID' => $IBLOCK_ID, 'CODE' => $CODE]);
             $ENTITY = $entity_res->Fetch();
         }
 
-        if(!$ENTITY)
+        if (!$ENTITY)
             throw new \Exception('Property with code ' . $CODE . ' not found in IBLOCK_ID ' . $IBLOCK_ID);
 
         $this->ENTITY = $ENTITY;
 
-        if($this->ENTITY['PROPERTY_TYPE'] != $this->PROPERTY_TYPE)
+        if ($this->ENTITY['PROPERTY_TYPE'] != $this->PROPERTY_TYPE)
             throw new \Exception('Wrong property type');
 
         $this->ELEMENT_ID = $ELEMENT_ID;
+    }
+
+    public function getCode()
+    {
+        return $this->CODE;
     }
 
     abstract function load();
@@ -58,19 +69,21 @@ abstract class Prop {
 
     abstract function save();
 
-    public static function getProp($IBLOCK_ID, $CODE, $ELEMENT_ID = null, $ENTITY = false){
+    public static function getProp($IBLOCK_ID, $CODE, $ELEMENT_ID = null, $ENTITY = false)
+    {
 
-        if(!$ENTITY){
-           $entity_res = \CIBlockProperty::GetList([], ['IBLOCK_ID' => $IBLOCK_ID , 'CODE' => $CODE]);
-           $ENTITY = $entity_res->Fetch();
+        if (!$ENTITY) {
+            $entity_res = \CIBlockProperty::GetList([], ['IBLOCK_ID' => $IBLOCK_ID, 'CODE' => $CODE]);
+            $ENTITY = $entity_res->Fetch();
         }
 
-        if(!$ENTITY)
+        if (!$ENTITY)
             throw new \Exception('Property with code ' . $CODE . ' not found in IBLOCK_ID ' . $IBLOCK_ID);
 
-        switch($ENTITY['PROPERTY_TYPE']){
+        switch ($ENTITY['PROPERTY_TYPE']) {
             case 'S' :
-                switch($ENTITY['USER_TYPE']){
+                switch ($ENTITY['USER_TYPE']) {
+                    case 'video':
                     case NULL :
                         $res = new PropString($IBLOCK_ID, $CODE, $ELEMENT_ID, $ENTITY);
                         break;
@@ -84,13 +97,17 @@ abstract class Prop {
                         throw new \Exception('Unknown property USER_TYPE ' . $ENTITY['USER_TYPE']);
                 }
                 break;
-            case 'N' : $res = new PropInt($IBLOCK_ID, $CODE, $ELEMENT_ID, $ENTITY);
+            case 'N' :
+                $res = new PropInt($IBLOCK_ID, $CODE, $ELEMENT_ID, $ENTITY);
                 break;
-            case 'L' : $res = new PropList($IBLOCK_ID, $CODE, $ELEMENT_ID, $ENTITY);
+            case 'L' :
+                $res = new PropList($IBLOCK_ID, $CODE, $ELEMENT_ID, $ENTITY);
                 break;
-            case 'F' : $res = new PropFile($IBLOCK_ID, $CODE, $ELEMENT_ID, $ENTITY);
+            case 'F' :
+                $res = new PropFile($IBLOCK_ID, $CODE, $ELEMENT_ID, $ENTITY);
                 break;
-            case 'E' : $res = new PropEList($IBLOCK_ID, $CODE, $ELEMENT_ID, $ENTITY);
+            case 'E' :
+                $res = new PropEList($IBLOCK_ID, $CODE, $ELEMENT_ID, $ENTITY);
                 break;
             default:
                 throw new \Exception('Unknown property type ' . $ENTITY['PROPERTY_TYPE']);
@@ -99,11 +116,18 @@ abstract class Prop {
         return $res;
     }
 
-    public function isMultiple(){
+    public function isRequired()
+    {
+        return $this->ENTITY['IS_REQUIRED'] == 'Y';
+    }
+
+    public function isMultiple()
+    {
         return $this->ENTITY['MULTIPLE'] == 'Y';
     }
 
-    public function setElementID($ELEMENT_ID){
+    public function setElementID($ELEMENT_ID)
+    {
         $this->ELEMENT_ID = $ELEMENT_ID;
     }
 

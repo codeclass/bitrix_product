@@ -48,7 +48,7 @@ class Price {
             if($ar_price['BASE'] == 'Y')
                 $this->BASE_PRICE = $ar_price['ID'];
         }
-        var_dump($this->PRICES);
+        // var_dump($this->PRICES);
     }
 
     public function load(){

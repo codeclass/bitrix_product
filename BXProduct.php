@@ -22,7 +22,7 @@ class BXProduct extends BXElement {
     var $IBLOCK_DATA;
     var $OFFERS_IBLOCK_DATA;
 
-    public static function findByFilter($IBLOCK_ID, $FILTER){
+    public static function findByFilter($IBLOCK_ID, $FILTER, $FIRST = false){
         $arFilter = array_merge(['IBLOCK_ID' => $IBLOCK_ID], $FILTER);
         $res  = \CIBlockElement::GetList([], $arFilter);
         $ret = [];
