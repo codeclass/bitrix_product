@@ -18,7 +18,7 @@ class PropList extends Prop {
     {
         parent::__construct($IBLOCK_ID, $CODE, $ELEMENT_ID, $ENTITY);
 
-        $this->ENUM = new Enum($IBLOCK_ID, $CODE);
+        $this->ENUM = new Enum($IBLOCK_ID, $CODE, $this->isRequired());
 
     }
 

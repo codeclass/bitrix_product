@@ -18,7 +18,7 @@ class PropListHL extends PropList {
     {
         parent::__construct($IBLOCK_ID, $CODE, $ELEMENT_ID, $ENTITY);
 
-        $this->ENUM = new EnumHL($IBLOCK_ID, $CODE, $ENTITY['USER_TYPE_SETTINGS']['TABLE_NAME']);
+        $this->ENUM = new EnumHL($IBLOCK_ID, $CODE, $ENTITY['USER_TYPE_SETTINGS']['TABLE_NAME'], $this->isRequired());
 
     }
 
